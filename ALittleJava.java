@@ -195,7 +195,9 @@ public class ALittleJava {
         fields += ", ";
       fields += String.format("%s = '%s'"
         , x1.name
-        , x1.val.atStartOfDay(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern(dateFmt)));
+        , x1.val
+          .atStartOfDay(ZoneId
+          .of("UTC")).format(DateTimeFormatter.ofPattern(dateFmt)));
       return x1.next.reduce(new UpdateSQLV(fields, table, where, dateFmt)); }
     public Object forEndOfFields() {
       return this; }
@@ -220,9 +222,15 @@ public class ALittleJava {
           x.new Field("id", "Customer ID",
             x.new Field("name", "Customer Name",
               x.new ChangedTextField("email", "foo@bar.com",
-                x.new EndOfFields()))));
+                x.new ChangedDateField("created_on", LocalDate.now(),
+                  x.new EndOfFields())))));
       System.out.println("y = " + y);
-      UpdateSQLV y1 = (UpdateSQLV) y.reduce(x.new UpdateSQLV("", "customer_t", "", ORACLE_DATEFMT_US));
+      UpdateSQLV y1 = (UpdateSQLV) y.reduce(
+        x.new UpdateSQLV(
+          "",
+          "customer_t",
+          "",
+          ORACLE_DATEFMT_US));
       System.out.println("y1 = " + y1);
       System.out.println(y1.toSQL());
     }
