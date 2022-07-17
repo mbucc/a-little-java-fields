@@ -84,11 +84,11 @@ public class ALittleJava {
       return ((PrimaryKey) x).next.reduce(
           new SelectSQLV(fields, table, where)); }
     public Object forColumn(FieldD x) {
-      String ys = fields.isEmpty()
-        ? ((Column) x).name
-        : fields + ", " + ((Column) x).name;
+      if (!fields.isEmpty())
+        fields += ", ";
+      fields += ((Column) x).name;
       return ((Column) x).next.reduce(
-          new SelectSQLV(ys, table, where)); }
+          new SelectSQLV(fields, table, where)); }
     public Object forEndOfFields() {
       return this; }
     public String toString() {
