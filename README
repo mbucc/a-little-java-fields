@@ -1,0 +1,76 @@
+July 16, 2022
+
+A Little Java, an Experiment With Fields
+=======================================================================
+
+Trying out the ideas in the 1998 book * A Little Java, A Few Patterns *,
+written by Matthias Felleisen and Daniel P. Friedman and published by MIT
+Press.
+
+Specifically, try to write some visitors for a FieldD datatype---one that
+writes select SQL, one that writes update SQL, a third that renders a view
+screen, and a fourth that generates an edit form.
+
+To run, type `make`.
+
+The code style imitates the style used in the book:
+
+  * the entire code base is a single class
+
+  * a single-letter suffix on the class name indicates what type
+  of class it is:
+
+      D      datatype
+      V      visitor
+      I      interface
+
+  * the closing curly bracket for a method does not have a preceeding newline
+
+
+Terms from the book
+---------------------------------
+
+
+    type       "A name for a collection of values.
+               Sometimes we use it as if it were the collection"
+               -- Chapter 1, panel 12.
+
+    datatype   An abstract class that represents a type.
+
+    variant    An extension of a datatype; for example, Salt extends Seasoning.
+               -- Chapter 1, panel 13
+
+    visitor    Improves code readability and structure by grouping like
+               functions in one class.
+
+               Instead of having the same method name in each variant (e.g.,
+               onlyOnions), use a visitor class (e.g., OnlyOnionsV)  with a
+               "for*" method for each variant (e.g., forSkewer, forLamb,
+               forOnion).
+               -- Chapter 4, panel 9
+
+    protocol   An "agreement on how classes that specify a datatype and its
+               variants interact with classes that realize functions on that
+               datatype."
+               -- Chapter 4, panel 32
+
+    interface  Defining the visitor with an interface cuts the variant code
+               in half.  For example, the code in the Bottom variant of a PieD
+               changes from this:
+
+                   PieD rem(RemV remFn) {
+                     return remFn.forBottom(); }
+                   PieD subst(SubstV substFn) {
+                     return substFn.forBottom(); }
+
+               to this:
+
+                   PieD rem(accept(PieVisitorI ask) {
+                     return ask.forBottom(); }
+
+    accept    A variant accepts a visitor.
+              -- Chapter 6, panel 48
+
+    ask       A variant asks a visitor "for its services".
+              -- Chapter 6, panel 49
+
