@@ -53,7 +53,6 @@ class ALittleJava {
         next); }
   }
 
-
   class Field extends FieldD {
     String name;
     String label;
@@ -68,6 +67,7 @@ class ALittleJava {
     public String toString() {
       return String.format("new %s(\"%s\", \"%s\", %s)", getClass().getName(), name, label, next); }
   }
+
   class ChangedTextField extends FieldD {
     String name;
     String val;
@@ -91,6 +91,7 @@ class ALittleJava {
   // If US, then format is 'dd-mon-rr' ('28-Feb-03').
   // ref: https://docs.oracle.com/database/121/NLSPG/ch3globenv.htm#NLSPG199
   // ref: https://docs.oracle.com/database/121/NLSPG/ch3globenv.htm#NLSPG203
+
   class ChangedDateField extends FieldD {
     String name;
     LocalDate val;
@@ -156,7 +157,6 @@ class ALittleJava {
       return String.format("SELECT %s FROM %s WHERE %s", fields, table, where); }
   }
 
-
   // https://docs.oracle.com/javase/tutorial/java/javaOO/nested.html
   class UpdateSQLV implements FieldReducerI {
     String fields;
@@ -212,7 +212,6 @@ class ALittleJava {
       return String.format("UPDATE %s SET %s WHERE %s", table, fields, where); }
   }
 
-
   // https://docs.oracle.com/javase/tutorial/java/javaOO/nested.html
   class Main {
     public static void main(String[] args) {
@@ -224,14 +223,14 @@ class ALittleJava {
               x.new ChangedTextField("email", "foo@bar.com",
                 x.new ChangedDateField("created_on", LocalDate.now(),
                   x.new EndOfFields())))));
-      System.out.println("y = " + y);
+      //System.out.println("y = " + y);
       UpdateSQLV y1 = (UpdateSQLV) y.reduce(
         x.new UpdateSQLV(
           "",
           "customer_t",
           "",
           ORACLE_DATEFMT_US));
-      System.out.println("y1 = " + y1);
+      //System.out.println("y1 = " + y1);
       System.out.println(y1.toSQL());
     }
   }
