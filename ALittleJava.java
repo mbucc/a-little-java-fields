@@ -19,7 +19,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
-public class ALittleJava {
+class ALittleJava {
 
   static final String ORACLE_DATEFMT_US = "dd-MMM-yy";
   static final String POSTGRESQL_DATEFMT = "yyyy-MM-dd";
@@ -44,7 +44,7 @@ public class ALittleJava {
       cols = _cols;
       next = _next; }
     //---------------------------------------------------------
-    public Object reduce(FieldReducerI ask) {
+    Object reduce(FieldReducerI ask) {
       return ask.forPrimaryKey(this); }
     public String toString() {
       return String.format("new %s(%s, %s)",
@@ -63,7 +63,7 @@ public class ALittleJava {
       label = _label;
       next = _next; }
     //---------------------------------------------------------
-    public Object reduce(FieldReducerI ask) {
+    Object reduce(FieldReducerI ask) {
       return ask.forField(this); }
     public String toString() {
       return String.format("new %s(\"%s\", \"%s\", %s)", getClass().getName(), name, label, next); }
@@ -77,7 +77,7 @@ public class ALittleJava {
       val = _val;
       next = _next; }
     //---------------------------------------------------------
-    public Object reduce(FieldReducerI ask) {
+    Object reduce(FieldReducerI ask) {
       return ask.forChangedTextField(this); }
     public String toString() {
       return String.format("new %s(\"%s\", \"%s\", %s)", getClass().getName(), name, val, next); }
@@ -100,14 +100,14 @@ public class ALittleJava {
       val = _val;
       next = _next; }
     //---------------------------------------------------------
-    public Object reduce(FieldReducerI ask) {
+    Object reduce(FieldReducerI ask) {
       return ask.forChangedDateField(this); }
     public String toString() {
       return String.format("new %s(\"%s\", \"%s\", %s)", getClass().getName(), name, val, next); }
   }
 
   class EndOfFields extends FieldD {
-    public Object reduce(FieldReducerI ask) {
+    Object reduce(FieldReducerI ask) {
       return ask.forEndOfFields(); }
     public String toString() {
       return "new " + getClass().getName() + "()"; }
@@ -152,7 +152,7 @@ public class ALittleJava {
         fields,
         table,
         where); }
-    public String toSQL() {
+    String toSQL() {
       return String.format("SELECT %s FROM %s WHERE %s", fields, table, where); }
   }
 
@@ -208,7 +208,7 @@ public class ALittleJava {
         table,
         where,
         dateFmt); }
-    public String toSQL() {
+    String toSQL() {
       return String.format("UPDATE %s SET %s WHERE %s", table, fields, where); }
   }
 
