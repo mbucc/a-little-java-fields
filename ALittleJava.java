@@ -58,7 +58,7 @@ public class ALittleJava {
     public Object reduce(FieldReducerI ask) {
       return ask.forField(this); }
     public String toString() {
-      return String.format("new %s(%s, %s, %s)", getClass().getName(), name, label, next); }
+      return String.format("new %s(\"%s\", \"%s\", %s)", getClass().getName(), name, label, next); }
   }
   class ChangedTextField extends FieldD {
     String name;
@@ -72,7 +72,7 @@ public class ALittleJava {
     public Object reduce(FieldReducerI ask) {
       return ask.forChangedTextField(this); }
     public String toString() {
-      return String.format("new %s(%s, %s, %s)", getClass().getName(), name, val, next); }
+      return String.format("new %s(\"%s\", \"%s\", %s)", getClass().getName(), name, val, next); }
   }
 
   class EndOfFields extends FieldD {
@@ -113,7 +113,7 @@ public class ALittleJava {
     public Object forEndOfFields() {
       return this; }
     public String toString() {
-      return String.format("new \"%s\"(\"%s\", \"%s\", \"%s\")",
+      return String.format("new %s(\"%s\", \"%s\", \"%s\")",
         getClass().getName(),
         fields,
         table,
