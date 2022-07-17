@@ -15,13 +15,21 @@
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 public class ALittleJava {
+
+  static final String ORACLE_DATEFMT_US = "dd-MMM-yy";
+  static final String POSTGRESQL_DATEFMT = "yyyy-MM-dd";
+
 
   interface FieldReducerI {
     Object forPrimaryKey(FieldD x);
     Object forField(FieldD x);
     Object forChangedTextField(FieldD x);
+    Object forChangedDateField(FieldD x);
     Object forEndOfFields();
   }
 
@@ -75,6 +83,29 @@ public class ALittleJava {
       return String.format("new %s(\"%s\", \"%s\", %s)", getClass().getName(), name, val, next); }
   }
 
+  // Default PostgreSQL date format is ISO (MDY).
+  // ref: https://www.postgresql.org/docs/current/datatype-datetime.html#DATATYPE-DATETIME-INPUT
+  // ref: https://www.postgresql.org/docs/current/runtime-config-client.html#GUC-DATESTYLE
+  //
+  // Default Oracle format may depend on the operating system.
+  // If US, then format is 'dd-mon-rr' ('28-Feb-03').
+  // ref: https://docs.oracle.com/database/121/NLSPG/ch3globenv.htm#NLSPG199
+  // ref: https://docs.oracle.com/database/121/NLSPG/ch3globenv.htm#NLSPG203
+  class ChangedDateField extends FieldD {
+    String name;
+    LocalDate val;
+    FieldD next;
+    ChangedDateField(String _name, LocalDate _val, FieldD _next) {
+      name = _name;
+      val = _val;
+      next = _next; }
+    //---------------------------------------------------------
+    public Object reduce(FieldReducerI ask) {
+      return ask.forChangedDateField(this); }
+    public String toString() {
+      return String.format("new %s(\"%s\", \"%s\", %s)", getClass().getName(), name, val, next); }
+  }
+
   class EndOfFields extends FieldD {
     public Object reduce(FieldReducerI ask) {
       return ask.forEndOfFields(); }
@@ -110,6 +141,9 @@ public class ALittleJava {
     public Object forChangedTextField(FieldD x) {
       ChangedTextField x1 = (ChangedTextField) x;
       return addFieldAndReduce(x1.name, x1.next); }
+    public Object forChangedDateField(FieldD x) {
+      ChangedDateField x1 = (ChangedDateField) x;
+      return addFieldAndReduce(x1.name, x1.next); }
     public Object forEndOfFields() {
       return this; }
     public String toString() {
@@ -128,10 +162,16 @@ public class ALittleJava {
     String fields;
     String table;
     String where;
-    UpdateSQLV(String _fields, String _table, String _where) {
+    String dateFmt;
+    UpdateSQLV(
+        String _fields,
+        String _table,
+        String _where,
+        String _dateFmt) {
       fields = _fields;
       table = _table;
-      where = _where; }
+      where = _where;
+      dateFmt = _dateFmt; }
     //---------------------------------------------------------
     public Object forPrimaryKey(FieldD x) {
       where = "";
@@ -140,7 +180,7 @@ public class ALittleJava {
           where += " AND ";
         where += ((Field) c).name + " = ?"; }
       return ((PrimaryKey) x).next.reduce(
-          new UpdateSQLV(fields, table, where)); }
+          new UpdateSQLV(fields, table, where, dateFmt)); }
     public Object forField(FieldD x) {
       return ((Field) x).next.reduce(this); }
     public Object forChangedTextField(FieldD x) {
@@ -148,15 +188,24 @@ public class ALittleJava {
       if (!fields.isEmpty())
         fields += ", ";
       fields += String.format("%s = '%s'", x1.name, x1.val);
-      return x1.next.reduce(new UpdateSQLV(fields, table, where)); }
+      return x1.next.reduce(new UpdateSQLV(fields, table, where, dateFmt)); }
+    public Object forChangedDateField(FieldD x) {
+      ChangedDateField x1 = (ChangedDateField) x;
+      if (!fields.isEmpty())
+        fields += ", ";
+      fields += String.format("%s = '%s'"
+        , x1.name
+        , x1.val.atStartOfDay(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern(dateFmt)));
+      return x1.next.reduce(new UpdateSQLV(fields, table, where, dateFmt)); }
     public Object forEndOfFields() {
       return this; }
     public String toString() {
-      return String.format("new %s(\"%s\", \"%s\", \"%s\")",
+      return String.format("new %s(\"%s\", \"%s\", \"%s\", \"%s\")",
         getClass().getName(),
         fields,
         table,
-        where); }
+        where,
+        dateFmt); }
     public String toSQL() {
       return String.format("UPDATE %s SET %s WHERE %s", table, fields, where); }
   }
@@ -173,13 +222,9 @@ public class ALittleJava {
               x.new ChangedTextField("email", "foo@bar.com",
                 x.new EndOfFields()))));
       System.out.println("y = " + y);
-      System.out.println(y.reduce(x.new UpdateSQLV("", "customer_t", "")));
-      UpdateSQLV v = (UpdateSQLV) y.reduce(
-        x.new UpdateSQLV(
-          "",
-          "customer_t",
-          ""));
-      System.out.println(v.toSQL());
+      UpdateSQLV y1 = (UpdateSQLV) y.reduce(x.new UpdateSQLV("", "customer_t", "", ORACLE_DATEFMT_US));
+      System.out.println("y1 = " + y1);
+      System.out.println(y1.toSQL());
     }
   }
 }
