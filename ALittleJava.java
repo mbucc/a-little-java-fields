@@ -21,7 +21,7 @@ public class ALittleJava {
   interface FieldReducerI {
     Object forPrimaryKey(FieldD x);
     Object forField(FieldD x);
-    Object forEditedTextField(FieldD x);
+    Object forChangedTextField(FieldD x);
     Object forEndOfFields();
   }
 
@@ -60,17 +60,17 @@ public class ALittleJava {
     public String toString() {
       return String.format("new %s(%s, %s, %s)", getClass().getName(), name, label, next); }
   }
-  class EditedTextField extends FieldD {
+  class ChangedTextField extends FieldD {
     String name;
     String val;
     FieldD next;
-    EditedTextField(String _name, String _val, FieldD _next) {
+    ChangedTextField(String _name, String _val, FieldD _next) {
       name = _name;
       val = _val;
       next = _next; }
     //---------------------------------------------------------
     public Object reduce(FieldReducerI ask) {
-      return ask.forEditedTextField(this); }
+      return ask.forChangedTextField(this); }
     public String toString() {
       return String.format("new %s(%s, %s, %s)", getClass().getName(), name, val, next); }
   }
@@ -107,8 +107,8 @@ public class ALittleJava {
     public Object forField(FieldD x) {
       Field x1 = (Field) x;
       return addFieldAndReduce(x1.name, x1.next); }
-    public Object forEditedTextField(FieldD x) {
-      EditedTextField x1 = (EditedTextField) x;
+    public Object forChangedTextField(FieldD x) {
+      ChangedTextField x1 = (ChangedTextField) x;
       return addFieldAndReduce(x1.name, x1.next); }
     public Object forEndOfFields() {
       return this; }
