@@ -21,6 +21,7 @@ public class ALittleJava {
   interface FieldReducerI {
     Object forPrimaryKey(FieldD x);
     Object forColumn(FieldD x);
+    Object forEditedTextColumn(FieldD x);
     Object forEndOfFields();
   }
 
@@ -44,6 +45,7 @@ public class ALittleJava {
         next); }
   }
 
+
   class Column extends FieldD {
     String name;
     String label;
@@ -57,6 +59,20 @@ public class ALittleJava {
       return ask.forColumn(this); }
     public String toString() {
       return String.format("new %s(%s, %s, %s)", getClass().getName(), name, label, next); }
+  }
+  class EditedTextColumn extends FieldD {
+    String name;
+    String val;
+    FieldD next;
+    EditedTextColumn(String _name, String _val, FieldD _next) {
+      name = _name;
+      val = _val;
+      next = _next; }
+    //---------------------------------------------------------
+    public Object reduce(FieldReducerI ask) {
+      return ask.forEditedTextColumn(this); }
+    public String toString() {
+      return String.format("new %s(%s, %s, %s)", getClass().getName(), name, val, next); }
   }
 
   class EndOfFields extends FieldD {
@@ -83,12 +99,17 @@ public class ALittleJava {
         where += ((Column) c).name + " = ?"; }
       return ((PrimaryKey) x).next.reduce(
           new SelectSQLV(fields, table, where)); }
-    public Object forColumn(FieldD x) {
+    Object addFieldAndReduce(String name, FieldD next) {
       if (!fields.isEmpty())
-        fields += ", ";
-      fields += ((Column) x).name;
-      return ((Column) x).next.reduce(
-          new SelectSQLV(fields, table, where)); }
+         fields += ", ";
+       fields += name;
+       return next.reduce(new SelectSQLV(fields, table, where)); }
+    public Object forColumn(FieldD x) {
+      Column x1 = (Column) x;
+      return addFieldAndReduce(x1.name, x1.next); }
+    public Object forEditedTextColumn(FieldD x) {
+      EditedTextColumn x1 = (EditedTextColumn) x;
+      return addFieldAndReduce(x1.name, x1.next); }
     public Object forEndOfFields() {
       return this; }
     public String toString() {
