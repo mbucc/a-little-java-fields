@@ -20,8 +20,8 @@ public class ALittleJava {
 
   interface FieldReducerI {
     Object forPrimaryKey(FieldD x);
-    Object forColumn(FieldD x);
-    Object forEditedTextColumn(FieldD x);
+    Object forField(FieldD x);
+    Object forEditedTextField(FieldD x);
     Object forEndOfFields();
   }
 
@@ -30,9 +30,9 @@ public class ALittleJava {
   }
 
   class PrimaryKey extends FieldD {
-    Column[] cols;
+    Field[] cols;
     FieldD next;
-    PrimaryKey(Column[] _cols, FieldD _next) {
+    PrimaryKey(Field[] _cols, FieldD _next) {
       cols = _cols;
       next = _next; }
     //---------------------------------------------------------
@@ -46,31 +46,31 @@ public class ALittleJava {
   }
 
 
-  class Column extends FieldD {
+  class Field extends FieldD {
     String name;
     String label;
     FieldD next;
-    Column(String _name, String _label, FieldD _next) {
+    Field(String _name, String _label, FieldD _next) {
       name = _name;
       label = _label;
       next = _next; }
     //---------------------------------------------------------
     public Object reduce(FieldReducerI ask) {
-      return ask.forColumn(this); }
+      return ask.forField(this); }
     public String toString() {
       return String.format("new %s(%s, %s, %s)", getClass().getName(), name, label, next); }
   }
-  class EditedTextColumn extends FieldD {
+  class EditedTextField extends FieldD {
     String name;
     String val;
     FieldD next;
-    EditedTextColumn(String _name, String _val, FieldD _next) {
+    EditedTextField(String _name, String _val, FieldD _next) {
       name = _name;
       val = _val;
       next = _next; }
     //---------------------------------------------------------
     public Object reduce(FieldReducerI ask) {
-      return ask.forEditedTextColumn(this); }
+      return ask.forEditedTextField(this); }
     public String toString() {
       return String.format("new %s(%s, %s, %s)", getClass().getName(), name, val, next); }
   }
@@ -93,10 +93,10 @@ public class ALittleJava {
     //---------------------------------------------------------
     public Object forPrimaryKey(FieldD x) {
       where = "";
-      for (Column c: ((PrimaryKey) x).cols) {
+      for (Field c: ((PrimaryKey) x).cols) {
         if (!where.isEmpty())
           where += " AND ";
-        where += ((Column) c).name + " = ?"; }
+        where += ((Field) c).name + " = ?"; }
       return ((PrimaryKey) x).next.reduce(
           new SelectSQLV(fields, table, where)); }
     Object addFieldAndReduce(String name, FieldD next) {
@@ -104,11 +104,11 @@ public class ALittleJava {
          fields += ", ";
        fields += name;
        return next.reduce(new SelectSQLV(fields, table, where)); }
-    public Object forColumn(FieldD x) {
-      Column x1 = (Column) x;
+    public Object forField(FieldD x) {
+      Field x1 = (Field) x;
       return addFieldAndReduce(x1.name, x1.next); }
-    public Object forEditedTextColumn(FieldD x) {
-      EditedTextColumn x1 = (EditedTextColumn) x;
+    public Object forEditedTextField(FieldD x) {
+      EditedTextField x1 = (EditedTextField) x;
       return addFieldAndReduce(x1.name, x1.next); }
     public Object forEndOfFields() {
       return this; }
@@ -128,10 +128,10 @@ public class ALittleJava {
     public static void main(String[] args) {
       var x = new ALittleJava();
       FieldD y =
-        x.new PrimaryKey(new Column[] {x.new Column("id", "Customer ID", null)},
-          x.new Column("id", "Customer ID",
-            x.new Column("name", "Customer Name",
-              x.new Column("email", "Customer email",
+        x.new PrimaryKey(new Field[] {x.new Field("id", "Customer ID", null)},
+          x.new Field("id", "Customer ID",
+            x.new Field("name", "Customer Name",
+              x.new Field("email", "Customer email",
                 x.new EndOfFields()))));
       System.out.println("y = " + y);
       System.out.println(y.reduce(x.new SelectSQLV("", "customer_t", "")));
