@@ -124,6 +124,45 @@ public class ALittleJava {
 
 
   // https://docs.oracle.com/javase/tutorial/java/javaOO/nested.html
+  class UpdateSQLV implements FieldReducerI {
+    String fields;
+    String table;
+    String where;
+    UpdateSQLV(String _fields, String _table, String _where) {
+      fields = _fields;
+      table = _table;
+      where = _where; }
+    //---------------------------------------------------------
+    public Object forPrimaryKey(FieldD x) {
+      where = "";
+      for (Field c: ((PrimaryKey) x).cols) {
+        if (!where.isEmpty())
+          where += " AND ";
+        where += ((Field) c).name + " = ?"; }
+      return ((PrimaryKey) x).next.reduce(
+          new UpdateSQLV(fields, table, where)); }
+    public Object forField(FieldD x) {
+      return ((Field) x).next.reduce(this); }
+    public Object forChangedTextField(FieldD x) {
+      ChangedTextField x1 = (ChangedTextField) x;
+      if (!fields.isEmpty())
+        fields += ", ";
+      fields += String.format("%s = '%s'", x1.name, x1.val);
+      return x1.next.reduce(new UpdateSQLV(fields, table, where)); }
+    public Object forEndOfFields() {
+      return this; }
+    public String toString() {
+      return String.format("new %s(\"%s\", \"%s\", \"%s\")",
+        getClass().getName(),
+        fields,
+        table,
+        where); }
+    public String toSQL() {
+      return String.format("UPDATE %s SET %s WHERE %s", table, fields, where); }
+  }
+
+
+  // https://docs.oracle.com/javase/tutorial/java/javaOO/nested.html
   class Main {
     public static void main(String[] args) {
       var x = new ALittleJava();
@@ -131,12 +170,12 @@ public class ALittleJava {
         x.new PrimaryKey(new Field[] {x.new Field("id", "Customer ID", null)},
           x.new Field("id", "Customer ID",
             x.new Field("name", "Customer Name",
-              x.new Field("email", "Customer email",
+              x.new ChangedTextField("email", "foo@bar.com",
                 x.new EndOfFields()))));
       System.out.println("y = " + y);
-      System.out.println(y.reduce(x.new SelectSQLV("", "customer_t", "")));
-      SelectSQLV v = (SelectSQLV) y.reduce(
-        x.new SelectSQLV(
+      System.out.println(y.reduce(x.new UpdateSQLV("", "customer_t", "")));
+      UpdateSQLV v = (UpdateSQLV) y.reduce(
+        x.new UpdateSQLV(
           "",
           "customer_t",
           ""));
