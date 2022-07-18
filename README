@@ -13,6 +13,54 @@ screen, and a fourth that generates an edit form.
 
 To run, type `make`.
 
+For example, the code:
+
+      var x = new ALittleJava();
+      var y = x.new UpdateSQLV("", "customer_t", "", ORACLE_DATEFMT_US);
+      y = (UpdateSQLV)
+        // Create a linked list of fields.
+        x.new PrimaryKey(new Field[] {x.new Field("id", "Customer ID", null)},
+          x.new Field("id", "Customer ID",
+            x.new Field("name", "Customer Name",
+              x.new ChangedTextField("email", "foo@bar.com",
+                x.new ChangedDateField("created_on", LocalDate.now(),
+                  x.new EndOfFields())))))
+          // And reduce to a SQL statement that updates the changed fields.
+          .reduce(y);
+      System.out.println(y.toSQL());
+
+will output:
+
+      UPDATE customer_t SET email = 'foo@bar.com', created_on = '17-Jul-22' WHERE id = ?
+
+If you change the reducer to SelectSQLV, you will get:
+
+      SELECT id, name, email, created_on FROM customer_t WHERE id = ?
+
+
+Kind of like sealed classes ...
+--------------------------------
+
+This feels very much like the Java 17 preview edition of the switch
+statement with a sealed class.  If you add a new variant to the
+sealed class, the compiler will tell you all the switch statements
+that must be updated.
+
+Here, when you add a new variant the compiler tells you to update
+all visitors.  The FieldD datatype is abstract, so any variant must
+include the reduce method.  The reduce method takes the FieldReducerI
+interface as an argument.
+
+If you stick to the pattern recommended by the *A Little Java* book,
+then the new variant's reduce delegates the work to the visitor
+interface by "asking" the  "for<Variant>" method on the interface.
+Again, here the compiler requires that you add that method to the
+interface.  And once on the visitor interface, all existing visitors
+must add that method to handle the new variant.
+
+A note on the code style
+----------------------------
+
 The code style imitates the style used in the book:
 
   * the entire code base is a single class
@@ -26,6 +74,13 @@ The code style imitates the style used in the book:
 
   * the closing curly bracket for a method does not have a preceeding newline
 
+  * constructors are emphasized with a dashed line
+
+
+The compact code this leads to takes a little getting used to, but
+works well.  Especially if you turn open the structure panel in
+IntelliJ.  And for such a small project as this, it is more convenient
+to have all the source in one file.
 
 Terms from the book
 ---------------------------------

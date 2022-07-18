@@ -216,22 +216,18 @@ class ALittleJava {
   class Main {
     public static void main(String[] args) {
       var x = new ALittleJava();
-      FieldD y =
+      //var y = x.new SelectSQLV("", "customer_t", "");
+      //y = (SelectSQLV)
+      var y = x.new UpdateSQLV("", "customer_t", "", ORACLE_DATEFMT_US);
+      y = (UpdateSQLV)
         x.new PrimaryKey(new Field[] {x.new Field("id", "Customer ID", null)},
           x.new Field("id", "Customer ID",
             x.new Field("name", "Customer Name",
               x.new ChangedTextField("email", "foo@bar.com",
                 x.new ChangedDateField("created_on", LocalDate.now(),
-                  x.new EndOfFields())))));
-      //System.out.println("y = " + y);
-      UpdateSQLV y1 = (UpdateSQLV) y.reduce(
-        x.new UpdateSQLV(
-          "",
-          "customer_t",
-          "",
-          ORACLE_DATEFMT_US));
-      //System.out.println("y1 = " + y1);
-      System.out.println(y1.toSQL());
+                  x.new EndOfFields())))))
+          .reduce(y);
+      System.out.println(y.toSQL());
     }
   }
 }
